@@ -1,0 +1,142 @@
+Dim_country :
+
+use Dimentional_table
+go
+create table Dim_country
+(
+  country_id int identity(101,1),
+  country    varchar(255),
+  CONSTRAINT PK1_1 PRIMARY KEY CLUSTERED (Country_id),
+     );
+
+	 
+INSERT INTO [dbo].[Dim_country]
+           ([country])
+
+		   select distinct country from Staging.dbo.Stg_Incidence 
+
+---------------------------------------------------------------------------------
+Dim_incidence
+
+USE [Dimentional_table]
+
+create table Dim_incidence
+ (incidence_id int identity(10001,1),country_id int,year int,tbcases int,tbper_pop int,tbcases_hiv int, tbper_pophiv varchar(200))
+
+ INSERT INTO [dbo].[Dim_incidence]
+           ([country_id]
+           ,[year]
+           ,[tbcases]
+           ,[tbper_pop]
+           ,[tbcases_hiv]
+           ,[tbper_pophiv])
+
+		   select 		a.country_id,
+					b.year,
+					b.tbcases,
+					b.tbper_pop,
+					b.tbcases_hiv,
+					b.tbper_pophiv
+
+	from dbo.Dim_country as a join staging.dbo.Stg_incidence as b on a.country= b.country
+297-----------------------------------------------------------------------------------------
+	dim statista
+
+use Dimentional_table
+go
+
+create table Dim_Statista (
+ 
+ country_id int identity(10,1),
+ country varchar(255),
+ incidence int ,
+ )
+  INSERT INTO [dbo].[Dim_Statista]
+           ([country]
+           ,[incidence])
+
+		    select 
+					b.country,
+					b.incidence
+				
+	from dbo.dim_country as a join staging.dbo.Stg_Incidents_2013 as b on a.country= b.country
+--------------------------------------------------------------
+
+dim mortality
+
+use Dimentional_table
+go
+
+ 
+create table Dim_Mortality
+ (mortality_id int identity(10001,1),country_id int,year int,nod_exhiv int,nod_hivnegpop int,)
+
+ INSERT INTO [dbo].[Dim_Mortality]
+           ([country_id]
+           ,[year]
+           ,[nod_exhiv]
+           ,[nod_hivnegpop]
+          )
+
+		   select   a.country_id,
+					b.year,
+					b.nod_exhiv,
+					b.nod_hivnegpop
+				
+
+	from dbo.dim_country as a join staging.dbo.Stg_Mortality as b on a.country= b.country
+-------------------------------------------------------------------------
+dim relapse cases
+
+use Dimentional_table
+go
+
+ 
+create table Dim_Relapse_cases
+ (relapse_id int identity(10001,1),country_id int,year int,tb_relapse int,tbinsurance int,)
+
+ INSERT INTO [dbo].[Dim_Relapse_cases]
+           ([country_id]
+           ,[year]
+           ,[tb_relapse]
+           ,[tbinsurance]
+          )
+
+		   select               a.country_id,
+					b.year,
+					b.tb_relapse,
+					b.tbinsurance
+				
+
+	from dbo.dim_country as a join staging.dbo.Stg_Relapse_cases as b on a.country= b.country 
+------------------------------------------------------------------
+dim statistaa
+
+use Dimentional_table
+go 
+create table Dim_Statistaa
+(
+  country_id int identity(10,1),
+  country    varchar(255),
+  incidence   int ,
+ );
+
+ INSERT INTO [dbo].[Dim_Statistaa]
+           ([country]
+           ,[incidence])
+
+		   select * from Staging.dbo.Stg_Incidents_2013
+..........................................................................................
+use Dimentional_table
+go
+ create table Dim_Gender_cases
+ (gender_case_ID int identity(101,1), year int ,cases varchar(255),women int,men int,children int);
+
+ INSERT INTO [dbo].[Dim_Gender_cases]
+           ([year]
+		   ,[cases]
+           ,[women]
+           ,[men]
+           ,[children])
+
+		   select year,cases,women,men,children from Staging.[dbo].[Stg_Gender_incidence_mortality]
