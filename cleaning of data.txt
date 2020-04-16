@@ -1,0 +1,187 @@
+for table incidence.    dt
+
+setwd("/Users/USER/Desktop/dwbi data/tb datasets")
+tb<- read.csv("incidence.csv",header = T,na.strings = c(""))
+tb$tbcases<-tb$tb_cases
+tb$tbcases<-gsub('\\[.*?\\]', '', tb$tbcases)
+tb$tbper_pop<-tb$tbperpop
+tb$tbper_pop<-gsub('\\[.*?\\]', '', tb$tbper_pop)
+tb$tbcases_hiv<-tb$tb_cases_hiv
+tb$tbcases_hiv<-gsub('\\[.*?\\]', '', tb$tbcases_hiv)
+tb$tbper_pophiv<-tb$tbperpop_hiv
+tb$tbper_pophiv<-gsub('\\[.*?\\]', '', tb$tbper_pophiv)
+tb$tb_cases<-NULL
+tb$tbperpop<-NULL
+tb$tb_cases_hiv<-NULL
+tb$tbperpop_hiv<-NULL
+tb$tbper_pophiv<-as.character((tb$tbper_pophiv))
+tb$tbper_pophiv<-as.numeric((tb$tbper_pophiv))
+tb$tbper_pophiv[is.na(tb$tbper_pophiv)]<-0
+tb$tbcases_hiv<-as.character((tb$tbcases_hiv))
+tb$tbcases_hiv<-as.integer((tb$tbcases_hiv))
+tb$tbcases_hiv[is.na(tb$tbcases_hiv)]<-0
+tb$tbper_pop<-as.integer((tb$tbper_pop))
+tb$Country<-as.character((tb$Country))
+tb$Year<-as.integer((tb$Year))
+tb$tbcases<-as.integer((tb$tbcases))
+tb$tbcases_hiv<-as.integer((tb$tbcases_hiv))
+
+.........................................................................
+for table mortality_by_country   tb2
+
+setwd("/Users/USER/Desktop/dwbi data/tb datasets")
+tb2<- read.csv("mortality_by_country.csv",header = T,na.strings = c(""))
+tb2$nod_exhiv<-tb2$nodexhiv
+tb2$nod_exhiv<-gsub('\\[.*?\\]', '', tb2$nod_exhiv)
+tb2$nod_hivnegpop<-tb2$nodhivnegpop
+tb2$nod_hivnegpop<-gsub('\\[.*?\\]', '', tb2$nod_hivnegpop)
+tb2$nodexhiv<-NULL
+tb2$nodhivnegpop<-NULL
+tb2$nod_exhiv<-as.character((tb2$nod_exhiv))
+tb2$nod_exhiv<-as.integer((tb2$nod_exhiv))
+tb2$nod_hivnegpop<-as.character((tb2$nod_hivnegpop))
+tb2$nod_hivnegpop<-as.integer((tb2$nod_hivnegpop))
+tb2$Country<-as.character((tb2$Country))
+
+............................................................................
+for table tb_relapse_cases   tb3
+
+setwd("/Users/USER/Desktop/dwbi data/tb datasets")
+tb3<- read.csv("TB_relapse_cases.csv",header = T,na.strings = c(""))
+tb3$tbinsurance<-tb3$tb_insurance
+tb3$tbinsurance<-gsub('\\[.*?\\]', '', tb3$tbinsurance)
+tb3$tb_insurance<-NULL
+tb3$Number.of.incident.tuberculosis.cases<-NULL
+tb3$tb_relapse<-as.character((tb3$tb_relapse))
+tb3$tb_relapse<-as.integer((tb3$tb_relapse))
+tb3$tb_relapse[is.na(tb3$tb_relapse)]<-0
+tb3$tbinsurance<-as.character((tb3$tbinsurance))
+tb3$tbinsurance<-as.integer((tb3$tbinsurance))
+tb3$tbinsurance[is.na(tb3$tbinsurance)]<-0
+tb3$Country<-as.character((tb3$Country))
+tb3$tb_relapse<-as.integer((tb3$tb_relapse))
+tb3$tbinsurance<-as.integer((tb3$tbinsurance))
+................................................................
+statista
+
+setwd("/Users/USER/Desktop/dwbi data/tb datasets")
+install.packages("readxl")
+library(readxl)
+Exceldata<-read_excel("statista.xlsx",skip=1, sheet = 2)
+Exceldata<-Exceldata[-c(1:2),]
+colnames(Exceldata)<-c("Country","Incidence")
+............................................................
+setwd("/Users/USER/Desktop/dwbi data/tb datasets")
+install.packages("readxl")
+install.packages("RODBC")
+library(RODBC)
+library(readxl)
+Exceldata<-read_excel("statista.xlsx",skip=1, sheet = 2)
+Exceldata<-Exceldata[-c(1:2),]
+colnames(Exceldata)<-c("Country","Incidence")
+
+ConnString <- odbcDriverConnect("Driver=SQL Server;Server=DELL; Database=Staging;trusted_connection=true")
+sqlSave(ConnString,Exceldata,tablename = "Stg_Incidents_2013",rownames = F )
+
+-------------------------------------------------------------------------------
+unstructured data extraction and cleaning:
+
+Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre-10.0.2')
+
+install.packages("splitstackshape")
+install.packages("tidyverse")
+install.packages("tidyr")
+library(splitstackshape)
+library(rJava)
+library(tabulizer)
+library(tidyr)
+library(tidyverse)
+
+tab2 <- extract_tables("C:\\Users\\USER\\Desktop\\dwbi data\\tb datasets\\unstructured.pdf",page=2)
+x3<-cbind(tab2[[1]][1:44,2])%>%data.frame()
+colnames(x3)<-c("list")
+x<-x3[c(13,15,17,19,20,22,23,25,27,29,30,32,33,35,36,38,40,43),]
+x<-data.frame(x)
+colnames(x)<-c("list")
+x$list<-as.character(x$list)
+y<-strsplit(x$list," ")
+z<-do.call(rbind.data.frame, y)
+colnames(z)<-c("cases","total","women","men","children","women_percentage","Ca","Cb")
+z$Ca<-NULL
+z$Cb<-NULL
+z<-z[-c(2,4,6,8,10,12,14,16,18),]
+z$cases<-as.character(z$cases)
+
+
+z$cases[1]<-"Incident Cases 2011"
+z$cases[2]<-"Incident Cases 2012"
+z$cases[3]<-"Incident Cases 2013"
+z$cases[4]<-"Total deaths 2011"
+z$cases[5]<-"Toat deaths 2012"
+z$cases[6]<-"Total deaths 2013"
+z$cases[7]<-"Tb deaths in PLHIV 2011"
+z$cases[8]<-"Tb daths in PLHIV 2012"
+z$cases[9]<-"Tb deaths in PLHIV 2013"
+c<-z[c(7,8,9),]
+c<-c[,c(1,3,4,5,6)]
+m<-c("47%","50%","45%")
+c<-data.frame(c,m)
+colnames(c)<-c("cases","total","women","men","children","women_percentage")
+merge.data.frame(z,c)
+z$women_percentage<-as.character(z$women_percentage)
+c$women_percentage<-as.character(c$women_percentage)
+z<-z[-c(7,8,9,10),]
+z$children<-as.character(z$children)
+z$children[1:3]<-paste(z$children[1:3],"0",  sep = "")
+z$women<-as.character(z$women)
+z$women[4:6]<-paste(z$women[4:6],"0",  sep = "")
+z$men<-as.character(z$men)
+z$men[4:6]<-paste(z$men[4:6],"0",  sep = "")
+################cleaning
+
+z$total<-z$total<-gsub("m","",z$total)
+z$total<-as.numeric(z$total)
+z$total<- 1000000 * z$total
+z$children<-gsub("\\*","",z$children)
+z$children<-gsub("\\,","",z$children)
+z$women_percentage<-gsub("\\%","",z$women_percentage)
+z$women<-gsub("\\m","",z$women)
+z$women<-gsub("\\.","",z$women)
+z$women<-gsub("\\,","",z$women)
+z$women<-as.integer(z$women)
+z$women[1:3]<-10000*z$women[1:3]
+z$men<-gsub("\\m","",z$men)
+z$men<-gsub("\\,","",z$men)
+z$men<-gsub("\\.","",z$men)
+z$men<-as.integer(z$men)
+z$men[1]<-10000*z$men[1]
+z$men[2:3]<-1000*z$men[2:3]
+
+#####splitting string to year coloumn
+z$Year<-substr(z$cases,str_locate(z$cases,"2"),str_locate(z$cases,"2")+4)
+
+z$women<-as.integer(z$women)
+z$men<-as.integer(z$men)
+z$children<-as.integer(z$children)
+z$Year<-as.integer(z$Year)
+
+ConnString <- odbcDriverConnect("Driver=SQL Server;Server=DELL; Database=Staging;trusted_connection=true")
+sqlSave(ConnString,z,tablename = "Stg_Gender_incidence_mortality",rownames = F )
+
+-------------------------------------------------------------
+cleaning code for country table
+library(RODBC)
+setwd("/Users/USER/Desktop/dwbi data/tb datasets")
+country<- read.csv("country.csv",header = T,na.strings = c(""))
+### removing columns
+country<-country[,c(1,4,6,7)]
+##### removing null values
+country<-country[-c(which(is.na(country$region))),]
+###loading to staging area
+colnames(country)<-c("Country_Name","Country_Code","Region","Sub_Region")
+ConnString <- odbcDriverConnect("Driver=SQL Server;Server=DELL; Database=Staging;trusted_connection=true")
+sqlSave(ConnString,country,tablename = "Stg_Country",rownames = F )
+which(is.na(country$Country_Code))
+
+.........................................................................
+
